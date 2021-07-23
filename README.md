@@ -2,6 +2,14 @@
 
 Streams json files into on big json. Reading and writing done with streaming. Json is validated while streaming as well.
 
+## Usage
+
+The following will fetch all files inside misc recursively.
+
+```bash
+cargo run -- misc/**/*
+```
+
 ## TODO
 - [ ] CLI
   - [x] input json lists
