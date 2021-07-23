@@ -2,14 +2,21 @@
 
 Streams json files into on big json. Reading and writing done with streaming. Json is validated while streaming as well.
 
-## TODO 
+## Usage
+
+The following will fetch all files inside misc recursively.
+
+```bash
+cargo run -- misc/**/*
+```
+
+## TODO
 - [ ] CLI
-  - [ ] input json lists
-  - [ ] output file name
+  - [x] input json lists
   - [ ] bonus: stream read and write buffer size
 - [ ] API
   - [ ] wrapper thatdoes the same as CLI but library
-- [ ] Reader 
+- [ ] Reader
   - [ ] Reads all input files in arguments order
 - [ ] Validator
   - [ ] Validate input files during stream read
@@ -17,5 +24,4 @@ Streams json files into on big json. Reading and writing done with streaming. Js
   - [ ] Write input files into output file after validating
 - [ ] Computer `,` `[` `]`
   - [ ] Add needed symbols to create valid output json
-
 

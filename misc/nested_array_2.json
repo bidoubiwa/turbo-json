@@ -1,0 +1,24 @@
+[
+  {
+    "id": "481370",
+    "title": "Bigger",
+    "poster": "https://image.tmdb.org/t/p/w1280/f6rmiFTfT3Rf9XDrXfLO6XcAgWn.jpg",
+    "overview": "The inspirational tale of the grandfathers of the fitness movement as we now know it, Joe & Ben Weider. Battling anti-Semitism, racism and extreme poverty, the brothers beat all odds to build an empire & inspire future generations.",
+    "release_date": 1539392400,
+    "genre": [
+    "Drama"
+    ]
+  },
+  {
+    "id": "31357",
+    "title": "Waiting to Exhale",
+    "poster": "https://image.tmdb.org/t/p/w1280/4wjGMwPsdlvi025ZqR4rXnFDvBz.jpg",
+    "overview": "Cheated on, mistreated and stepped on, the women are holding their breath, waiting for the elusive 'good man' to break a string of less-than-stellar lovers. Friends and confidants Vannah, Bernie, Glo and Robin talk it all out, determined to find a better way to breathe.",
+    "release_date": 819590400,
+    "genre": [
+    "Comedy",
+    "Drama",
+    "Romance"
+    ]
+  }
+]
