@@ -7,6 +7,7 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
     }
+    for (index, file_path) in file_paths.iter().enumerate() {
         let mut file = match File::open(file_path) {
             Ok(file) => file,
             Err(error) => {
@@ -20,6 +21,12 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
             eprintln!("File {} is not a valid JSON ", file_path);
             eprintln!("{}", error);
             continue;
+        }
+        if index != 0 {
+            if let Err(error) = writer.write_all(b",") {
+                eprintln!("{}", error);
+                panic!("Could not write in the output stream");
+            }
         }
 
         if let Err(error) = file.seek(io::SeekFrom::Start(0)) {
