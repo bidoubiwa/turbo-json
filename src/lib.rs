@@ -10,10 +10,23 @@ use std::io::prelude::*;
 /// output: [1, 2, [3], "hello"]
 fn normalize_json_types(mut file: impl Read, writer: &mut impl Write) -> io::Result<()> {
     let mut buffer = [0; 10];
-
+    let mut first_char_found = false;
     loop {
         let size = file.read(&mut buffer)?;
-        writer.write_all(&buffer[..size])?;
+        if !first_char_found {
+            let first_none_white_position =
+                &buffer.iter().position(|c| !(*c as char).is_whitespace());
+            if let Some(char_position) = first_none_white_position {
+                first_char_found = true;
+                let start = match &buffer[*char_position] {
+                    b'[' => char_position + 1,
+                    _ => *char_position,
+                };
+                writer.write_all(&buffer[start..size])?;
+            }
+        } else {
+            writer.write_all(&buffer[0..size])?;
+        }
         if size == 0 {
             break;
         }
