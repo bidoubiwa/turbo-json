@@ -2,7 +2,27 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
+/// All JSON types are valid input.
+/// Nonetheless, if the JSON is an array it will be flattened in the output
+/// Flattening is only one level deep
+/// Ex:
+/// input: [1, 2, [3]] & "hello"
+/// output: [1, 2, [3], "hello"]
+fn normalize_json_types(mut file: impl Read, writer: &mut impl Write) -> io::Result<()> {
+    let mut buffer = [0; 10];
+
+    loop {
+        let size = file.read(&mut buffer)?;
+        writer.write_all(&buffer[..size])?;
+        if size == 0 {
+            break;
+        }
+    }
+    Ok(())
+}
+
 pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
+
     if let Err(error) = writer.write_all(b"[") {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
@@ -32,18 +52,14 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
         if let Err(error) = file.seek(io::SeekFrom::Start(0)) {
             eprintln!("Getting back to the start of file {} failed", file_path);
             eprintln!("{}", error);
-            continue;
+            panic!("Getting back to the start of file {} failed", file_path);
         }
         let mut buffer = [0; 10];
 
-        loop {
-            let size = match file.read(&mut buffer) {
-                Ok(size) => size,
-                Err(error) => {
-                    eprintln!("could not read file: {}", file_path);
-                    eprintln!("{}", error);
-                    break;
-                }
+        if let Err(error) = normalize_json_types(file, &mut writer) {
+            eprintln!("{}", error);
+            panic!("could not read file: {}", file_path);
+        }
     }
 
     if let Err(error) = writer.write_all(b"]") {
