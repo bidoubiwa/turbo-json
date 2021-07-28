@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "jsonboat"
+name = "json-boat"
 version = "0.1.0"
 dependencies = [
  "oxidized-json-checker",
