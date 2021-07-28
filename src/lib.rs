@@ -3,7 +3,10 @@ use std::io;
 use std::io::prelude::*;
 
 pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
-    for file_path in &file_paths {
+    if let Err(error) = writer.write_all(b"[") {
+        eprintln!("{}", error);
+        panic!("Could not write in the output stream");
+    }
         let mut file = match File::open(file_path) {
             Ok(file) => file,
             Err(error) => {
@@ -34,12 +37,10 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
                     eprintln!("{}", error);
                     break;
                 }
-            };
+    }
 
-            writer.write(&buffer[..size]);
-            if size == 0 {
-                break;
-            }
-        }
+    if let Err(error) = writer.write_all(b"]") {
+        eprintln!("{}", error);
+        panic!("Could not write in the output stream");
     }
 }
