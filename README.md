@@ -16,10 +16,10 @@ cargo run -- misc/**/*
   - [ ] bonus: stream read and write buffer size
 - [ ] API
   - [ ] wrapper thatdoes the same as CLI but library
-- [ ] Reader
-  - [ ] Reads all input files in arguments order
-- [ ] Validator
-  - [ ] Validate input files during stream read
+- [x] Reader
+  - [x] Reads all input files in arguments order
+- [x] Validator
+  - [x] Validate input files during stream read
 - [ ] Writer
   - [ ] Write input files into output file after validating
 - [ ] Computer `,` `[` `]`

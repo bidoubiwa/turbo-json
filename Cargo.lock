@@ -5,3 +5,12 @@ version = 3
 [[package]]
 name = "jsonboat"
 version = "0.1.0"
+dependencies = [
+ "oxidized-json-checker",
+]
+
+[[package]]
+name = "oxidized-json-checker"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "938464aebf563f48ab86d1cfc0e2df952985c0b814d3108f41d1b85e7f5b0dac"
