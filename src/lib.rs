@@ -50,7 +50,7 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
             }
         };
 
-        if let Err(error) = oxidized_json_checker::validate(&file) {
+        if let Err(error) = turbo_json_checker::validate(&file) {
             eprintln!("File {} is not a valid JSON ", file_path);
             eprintln!("{}", error);
             continue;
