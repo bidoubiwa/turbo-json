@@ -1,5 +1,5 @@
 
-<h1 align="center">json-boat</h1>
+<h1 align="center">TURBO-JSON</h1>
 
 <p align="center">
 <img src="assets/boat.png" width=300 />
