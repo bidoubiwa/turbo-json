@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "json-boat"
+name = "turbo-json"
 version = "0.1.0"
 dependencies = [
  "oxidized-json-checker",

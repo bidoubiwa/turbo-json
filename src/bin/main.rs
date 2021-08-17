@@ -1,4 +1,4 @@
-use json_boat::json_combine;
+use turbo_json::json_combine;
 use std::env::args;
 use std::io;
 
@@ -7,9 +7,9 @@ fn main() -> io::Result<()> {
 
     if arguments.iter().any(|arg| arg == "--help") || arguments.is_empty() {
         println!(
-            "json-boat: 0.1.0
+            "turbo-json: 0.1.0
     USAGE:
-      json-boat [files]
+      turbo-json [files]
     "
         );
         return Ok(());
