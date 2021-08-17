@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
+use turbo_json_checker::JsonType;
 
 /// All JSON types are valid input.
 /// Nonetheless, if the JSON is an array it will be flattened in the output
@@ -35,7 +36,6 @@ fn normalize_json_types(mut file: impl Read, writer: &mut impl Write) -> io::Res
 }
 
 pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
-
     if let Err(error) = writer.write_all(b"[") {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
@@ -50,11 +50,16 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
             }
         };
 
-        if let Err(error) = turbo_json_checker::validate(&file) {
-            eprintln!("File {} is not a valid JSON ", file_path);
-            eprintln!("{}", error);
-            continue;
-        }
+        let (start, end) = match turbo_json_checker::validate(&file) {
+            Ok((JsonType::Array, start, end)) => (start + 1, end - 1),
+            Ok((_, start, end)) => (start, end),
+            Err(error) => {
+                eprintln!("File {} is not a valid JSON ", file_path);
+                eprintln!("{}", error);
+                continue;
+            }
+        };
+
         if index != 0 {
             if let Err(error) = writer.write_all(b",") {
                 eprintln!("{}", error);

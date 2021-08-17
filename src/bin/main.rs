@@ -1,6 +1,6 @@
-use turbo_json::json_combine;
 use std::env::args;
 use std::io;
+use turbo_json::json_combine;
 
 fn main() -> io::Result<()> {
     let arguments: Vec<_> = args().skip(1).collect();
