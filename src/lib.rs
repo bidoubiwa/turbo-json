@@ -14,7 +14,6 @@ fn array_reader(
     end: u64,
 ) -> anyhow::Result<Option<impl Read>> {
     let mut enclosed_reader = enclose_reader(reader, start, end)?;
-    dbg!(start, end);
     let mut c = [0];
 
     loop {
@@ -23,7 +22,6 @@ fn array_reader(
                 return Ok(None);
             }
         }
-        dbg!(c[0] as char);
         if !(c[0] as char).is_whitespace() {
            break;
         }
@@ -53,7 +51,7 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
                 .unwrap()
                 .map(|o| Box::new(o) as Box<dyn Read>),
             Ok((_, start, end)) => Some(Box::new(
-                enclose_reader(file, start as u64, end as u64).unwrap(),
+                enclose_reader(file, start as u64, end as u64 + 1).unwrap(),
             ) as Box<dyn Read>),
             Err(error) => {
                 eprintln!("File {} is not a valid JSON ", file_path);
@@ -61,7 +59,6 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
                 continue;
             }
         };
-        dbg!(&enclosed_reader.is_none());
         if enclosed_reader.is_none() {
             continue;
         }
