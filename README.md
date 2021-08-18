@@ -16,7 +16,7 @@ cargo run -- misc/**/*
 ```
 
 ## TODO
-- [ ] CLI
+- [x] CLI
   - [x] input json lists
   - [ ] bonus: stream read and write buffer size
 - [x] API
@@ -28,5 +28,5 @@ cargo run -- misc/**/*
 - [x] Writer
   - [x] Write input files into output file after validating
 - [x] Computer `,` `[` `]`
-  - [ ] Add needed symbols to create valid output json
+  - [x] Add needed symbols to create valid output json
 
