@@ -49,7 +49,7 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
         };
 
         let enclosed_reader = match turbo_json_checker::validate(&file) {
-            Ok((JsonType::Array, start, end)) => array_reader(file, start as u64, end as u64)
+            Ok((JsonType::Array, start, end)) => array_reader(file, start as u64 + 1, end as u64)
                 .unwrap()
                 .map(|o| Box::new(o) as Box<dyn Read>),
             Ok((_, start, end)) => Some(Box::new(
