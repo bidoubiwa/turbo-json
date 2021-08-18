@@ -1,47 +1,43 @@
-use std::fs::File;
-use std::io;
 use std::io::prelude::*;
+use std::io::{self, ErrorKind};
+use std::{fs::File, io::Cursor};
+use turbo_json_checker::JsonType;
 
-/// All JSON types are valid input.
-/// Nonetheless, if the JSON is an array it will be flattened in the output
-/// Flattening is only one level deep
-/// Ex:
-/// input: [1, 2, [3]] & "hello"
-/// output: [1, 2, [3], "hello"]
-fn normalize_json_types(mut file: impl Read, writer: &mut impl Write) -> io::Result<()> {
-    let mut buffer = [0; 10];
-    let mut first_char_found = false;
+fn enclose_reader(mut reader: impl Read + Seek, start: u64, end: u64) -> anyhow::Result<impl Read> {
+    reader.seek(io::SeekFrom::Start(start))?;
+    Ok(reader.take(end - start))
+}
+
+fn array_reader(
+    reader: impl Read + Seek,
+    start: u64,
+    end: u64,
+) -> anyhow::Result<Option<impl Read>> {
+    let mut enclosed_reader = enclose_reader(reader, start, end)?;
+    let mut c = [0];
+
     loop {
-        let size = file.read(&mut buffer)?;
-        if !first_char_found {
-            let first_none_white_position =
-                &buffer.iter().position(|c| !(*c as char).is_whitespace());
-            if let Some(char_position) = first_none_white_position {
-                first_char_found = true;
-                let start = match &buffer[*char_position] {
-                    b'[' => char_position + 1,
-                    _ => *char_position,
-                };
-                writer.write_all(&buffer[start..size])?;
+        if let Err(err) = enclosed_reader.read_exact(&mut c) {
+            if err.kind() == ErrorKind::UnexpectedEof {
+                return Ok(None);
             }
-        } else {
-            writer.write_all(&buffer[0..size])?;
         }
-        if size == 0 {
-            break;
+        if !(c[0] as char).is_whitespace() {
+           break;
         }
     }
-    Ok(())
+    Ok(Some(Cursor::new(c.clone()).chain(enclosed_reader)))
 }
 
 pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
-
     if let Err(error) = writer.write_all(b"[") {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
     }
+    let mut first_element = true;
+
     for (index, file_path) in file_paths.iter().enumerate() {
-        let mut file = match File::open(file_path) {
+        let file = match File::open(file_path) {
             Ok(file) => file,
             Err(error) => {
                 eprintln!("File: {} could not be opened", file_path);
@@ -50,28 +46,36 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
             }
         };
 
-        if let Err(error) = oxidized_json_checker::validate(&file) {
-            eprintln!("File {} is not a valid JSON ", file_path);
-            eprintln!("{}", error);
+        let enclosed_reader = match turbo_json_checker::validate(&file) {
+            Ok((JsonType::Array, start, end)) => array_reader(file, start as u64 + 1, end as u64)
+                .unwrap()
+                .map(|o| Box::new(o) as Box<dyn Read>),
+            Ok((_, start, end)) => Some(Box::new(
+                enclose_reader(file, start as u64, end as u64 + 1).unwrap(),
+            ) as Box<dyn Read>),
+            Err(error) => {
+                eprintln!("File {} is not a valid JSON ", file_path);
+                eprintln!("{}", error);
+                continue;
+            }
+        };
+        if enclosed_reader.is_none() {
             continue;
         }
-        if index != 0 {
+        let mut enclosed_reader = enclosed_reader.unwrap();
+
+        if first_element == false {
             if let Err(error) = writer.write_all(b",") {
                 eprintln!("{}", error);
                 panic!("Could not write in the output stream");
             }
+        } else {
+            first_element = false;
         }
 
-        if let Err(error) = file.seek(io::SeekFrom::Start(0)) {
-            eprintln!("Getting back to the start of file {} failed", file_path);
+        if let Err(error) = io::copy(&mut enclosed_reader, &mut writer) {
             eprintln!("{}", error);
-            panic!("Getting back to the start of file {} failed", file_path);
-        }
-        let mut buffer = [0; 10];
-
-        if let Err(error) = normalize_json_types(file, &mut writer) {
-            eprintln!("{}", error);
-            panic!("could not read file: {}", file_path);
+            panic!("Could not read and write from {}", file_path);
         }
     }
 

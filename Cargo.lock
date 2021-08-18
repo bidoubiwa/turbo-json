@@ -3,14 +3,21 @@
 version = 3
 
 [[package]]
+name = "anyhow"
+version = "1.0.43"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28ae2b3dec75a406790005a200b1bd89785afc02517a00ca99ecfe093ee9e6cf"
+
+[[package]]
 name = "turbo-json"
 version = "0.1.0"
 dependencies = [
- "oxidized-json-checker",
+ "anyhow",
+ "turbo-json-checker",
 ]
 
 [[package]]
-name = "oxidized-json-checker"
-version = "0.3.2"
+name = "turbo-json-checker"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "938464aebf563f48ab86d1cfc0e2df952985c0b814d3108f41d1b85e7f5b0dac"
+checksum = "9c415f26b3352eecc49b06ab395d63857966de2572308dac133c908bba5003bd"
