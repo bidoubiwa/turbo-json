@@ -18,6 +18,6 @@ dependencies = [
 
 [[package]]
 name = "turbo-json-checker"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c415f26b3352eecc49b06ab395d63857966de2572308dac133c908bba5003bd"
+checksum = "cd76c817925375f0ac5403c7c6970a34ee5c68d453a1652564ca19583f0e9650"
