@@ -7,5 +7,6 @@ edition = "2018"
 
 [dependencies]
 turbo-json-checker = "2.0.1"
-anyhow = "1.0.43"
 rayon = "1.5.1"
+indicatif = {version = "0.16.2", features = ["rayon"]}
+term-painter = "0.3.0"

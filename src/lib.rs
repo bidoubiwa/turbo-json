@@ -1,3 +1,5 @@
+use indicatif::ParallelProgressIterator;
+use indicatif::ProgressIterator;
 use rayon::prelude::*;
 use std::io::prelude::*;
 use std::io::{self, ErrorKind};
@@ -5,19 +7,39 @@ use std::{fs::File, io::Cursor};
 use turbo_json_checker::JsonType;
 use std::fmt::Display;
 
-fn enclose_reader(mut reader: impl Read + Seek, start: u64, end: u64) -> io::Result<impl Read> {
+
+enum JSONFileError {
+    IOError(std::io::Error, String),
+    InvalidJSON(std::io::Error, String)
+}
+
+impl Display for JSONFileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            JSONFileError::IOError(error, file_path) => {
+                write!(f, "Input/Output Error: {} on {}", error, file_path)
+            }
+            JSONFileError::InvalidJSON(error, file_path) => {
+                write!(f, "Invalid JSON Error: {} on {}", error, file_path)
+            }
+        }
+    }
+}
+
+
+fn trim_reader_to_content(mut reader: impl Read + Seek, start: u64, end: u64) -> io::Result<impl Read> {
     reader.seek(io::SeekFrom::Start(start))?;
     Ok(reader.take(end - start))
 }
 
-fn array_reader(reader: impl Read + Seek, start: u64, end: u64) -> io::Result<Option<impl Read>> {
-    let mut enclosed_reader = enclose_reader(reader, start, end)?;
+fn flatten_reader_on_array(reader: impl Read + Seek, start: u64, end: u64) -> io::Result<Option<impl Read>> {
+    let mut trimmed_reader = trim_reader_to_content(reader, start, end)?;
     let mut c = [0];
 
     loop {
         // In case the array is empty, we catch the UnexpectedEof to return a None
         // Meaning there is nothing to flatten from this array.
-        if let Err(err) = enclosed_reader.read_exact(&mut c) {
+        if let Err(err) = trimmed_reader.read_exact(&mut c) {
             if err.kind() == ErrorKind::UnexpectedEof {
                 return Ok(None);
             }
@@ -35,57 +57,40 @@ fn array_reader(reader: impl Read + Seek, start: u64, end: u64) -> io::Result<Op
     // Example c[0] = `"` in the case of [     "a", "b", "c"]
     // enclosed_reader has its cursor placed on `a`
     // We chain a reader starting at c[0] with the cursor position of enclosed_reader
-    Ok(Some(Cursor::new(c.clone()).chain(enclosed_reader)))
+    Ok(Some(Cursor::new(c.clone()).chain(trimmed_reader)))
 }
 
-enum JSONFileError {
-    IOError(String, std::io::Error),
-    InvalidJSON(String, std::io::Error),
-}
 
-impl Display for JSONFileError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            JSONFileError::IOError(message, error) => {
-                write!(f, "{} \n {}", message, error)
-            }
-            JSONFileError::InvalidJSON(message, error) => {
-                write!(f, "{} \n  {}", message, error)
-            }
-        }
-    }
-}
-
-fn validate_files(files_path: &[String]) -> Vec<Result<Option<Box<dyn Read + Send>>, JSONFileError>> {
+fn validate_files(
+    files_path: &[String],
+) -> Vec<Result<Option<Box<dyn Read + Send>>, JSONFileError>> {
     files_path
         .par_iter()
+        .progress_count(files_path.len() as u64)
         .map(|file_path| {
             let file = match File::open(file_path) {
                 Ok(file) => file,
                 Err(error) => {
-                    let message = format!("File: {} could not be opened", file_path);
-                    return Err(JSONFileError::IOError(message, error));
+                    return Err(JSONFileError::IOError(error, file_path.to_string()));
                 }
             };
             match turbo_json_checker::validate(&file) {
                 Ok((JsonType::Array, start, end)) => {
-                    match array_reader(file, start as u64 + 1, end as u64) {
-                        Ok(cursor_option) => {
-                            Ok(cursor_option.map(|reader| Box::new(reader) as Box<dyn Read + Send>))
-                        }
-                        Err(error) => Err(JSONFileError::IOError(String::new(), error)),
+                    match flatten_reader_on_array(file, start as u64 + 1, end as u64) {
+                        Ok(cursor_option) => Ok(
+                            cursor_option.map(|reader| Box::new(reader) as Box<dyn Read + Send>)
+                        ),
+                        Err(error) => {
+                            Err(JSONFileError::IOError(error, file_path.to_string())
+                        )},
                     }
                 }
-                Ok((_, start, end)) => {
-                    match enclose_reader(file, start as u64, end as u64 + 1) {
-                        Ok(cursor) => {
-                            Ok(Some(Box::new(cursor) as Box<dyn Read  + Send>))
-                        },
-                        Err(error) => Err(JSONFileError::IOError(String::new(), error)),
-                }},
+                Ok((_, start, end)) => match trim_reader_to_content(file, start as u64, end as u64 + 1) {
+                    Ok(cursor) => Ok(Some(Box::new(cursor) as Box<dyn Read + Send>)),
+                    Err(error) => Err(JSONFileError::IOError(error, file_path.to_string()))
+                },
                 Err(error) => {
-                    let message = format!("File {} is not a valid JSON", file_path);
-                    Err(JSONFileError::InvalidJSON(message, error))
+                    Err(JSONFileError::InvalidJSON(error, file_path.to_string()))
                 }
             }
         })
@@ -97,17 +102,21 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
     }
+    let mut error_messages = Vec::new();
     let mut first_element = true;
 
     let valid_files_reader = validate_files(&file_paths);
-
-    for valid_files_reader in valid_files_reader.into_iter() {
+    let number_of_files = valid_files_reader.len() as u64;
+    for valid_files_reader in valid_files_reader
+        .into_iter()
+        .progress_count(number_of_files)
+    {
         let mut file_reader = match valid_files_reader {
             Ok(Some(reader)) => reader,
             Ok(None) => continue,
             Err(error) => {
-                eprintln!("{}", error);
-                continue
+                error_messages.push(error);
+                continue;
             }
         };
 
@@ -129,4 +138,5 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
     }
+    error_messages.iter().for_each(|error| eprintln!("{}", error))
 }
