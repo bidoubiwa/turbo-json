@@ -19,6 +19,5 @@ fn main() -> io::Result<()> {
     let stdout = stdout.lock();
 
     json_combine(arguments, stdout);
-    // dbg!(arguments);
     Ok(())
 }
