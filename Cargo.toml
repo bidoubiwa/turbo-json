@@ -9,4 +9,4 @@ edition = "2018"
 turbo-json-checker = "2.0.1"
 rayon = "1.5.1"
 indicatif = {version = "0.16.2", features = ["rayon"]}
-term-painter = "0.3.0"
+termion = "1.5.6"

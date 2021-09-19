@@ -6,6 +6,7 @@ use std::io::{self, ErrorKind};
 use std::{fs::File, io::Cursor};
 use turbo_json_checker::JsonType;
 use std::fmt::Display;
+use termion::{color, style};
 
 
 enum JSONFileError {
@@ -17,10 +18,10 @@ impl Display for JSONFileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             JSONFileError::IOError(error, file_path) => {
-                write!(f, "Input/Output Error: {} on {}", error, file_path)
+                write!(f, "{}[Input/Output Error]{} {} on {} {} {}", color::Fg(color::Red), style::Reset, error, color::Fg(color::Red), file_path, style::Reset)
             }
             JSONFileError::InvalidJSON(error, file_path) => {
-                write!(f, "Invalid JSON Error: {} on {}", error, file_path)
+                write!(f, "{}[Invalid JSON Error]{} {} on {} {} {}", color::Fg(color::Red), style::Reset, error, color::Fg(color::Cyan), file_path, style::Reset)
             }
         }
     }
