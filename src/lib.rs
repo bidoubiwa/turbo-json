@@ -20,7 +20,7 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
 
     files_write_progress_bar.set_style(
         ProgressStyle::default_bar()
-            .template("{spinner:.green} concatenate... [{elapsed_precise}] [{wide_bar:.green}]▏{pos}/{len}") // green does not work, it is always white
+            .template("{spinner:.green} combining... [{elapsed_precise}] [{wide_bar:.green}]▏{pos}/{len}") // green does not work, it is always white
             .progress_chars("█▇▆▅▄▃▂▁  "),
     );
 

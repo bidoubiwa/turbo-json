@@ -50,3 +50,8 @@ turbo-json [files]
 ```bash
 turbo-json misc/**/*
 ```
+
+
+### 2GB Combined Datasets Example
+
+![](./assets/progress_bar.gif)
