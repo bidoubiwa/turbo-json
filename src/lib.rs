@@ -71,7 +71,6 @@ fn validate_files(files_path: &[String]) -> Vec<Result<Option<Box<dyn Read + Sen
                 Ok((JsonType::Array, start, end)) => {
                     match array_reader(file, start as u64 + 1, end as u64) {
                         Ok(cursor_option) => {
-                            eprintln!("{} validated", file_path);
                             Ok(cursor_option.map(|reader| Box::new(reader) as Box<dyn Read + Send>))
                         }
                         Err(error) => Err(JSONFileError::IOError(String::new(), error)),
@@ -102,7 +101,7 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
 
     let valid_files_reader = validate_files(&file_paths);
 
-    for (index, valid_files_reader) in valid_files_reader.into_iter().enumerate() {
+    for valid_files_reader in valid_files_reader.into_iter() {
         let mut file_reader = match valid_files_reader {
             Ok(Some(reader)) => reader,
             Ok(None) => continue,
@@ -124,7 +123,6 @@ pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
         if let Err(error) = io::copy(&mut file_reader, &mut writer) {
             panic!("{}", error);
         }
-        eprintln!("{} files were written correctly", index)
     }
 
     if let Err(error) = writer.write_all(b"]") {
