@@ -2,8 +2,11 @@
 <h1 align="center">TURBO-JSON</h1>
 
 <p align="center">
-<img src="assets/boat.png" width=300 />
+<img src="https://github.com/bidoubiwa/turbo-json/raw/main/assets/boat.png" width=300 />
 </p>
+
+![](https://github.com/bidoubiwa/turbo-json/raw/main/assets/json_combining.gif)
+__example with 2GB of json files__
 
 Streams JSON files and combine them into in an outputted JSON. Reading and writing are done exclusively with **streaming**.
 The memory usage will [not exceed 8kb](https://doc.rust-lang.org/stable/std/io/struct.BufReader.html#method.new) instead of your files size in a no-streaming read/write process.
@@ -32,7 +35,7 @@ The following will fetch all files inside misc recursively and output it's combi
 
 With a **local run**:
 ```bash
-cargo run --release -- [files]
+cargo run --release -- [file ...]
 ```
 
 **example:**
@@ -43,15 +46,10 @@ cargo run --release -- misc/**/*
 With the **global** install:
 
 ```bash
-turbo-json [files]
+turbo-json [files ...]
 ```
 
 **example:**
 ```bash
 turbo-json misc/**/*
 ```
-
-
-### 2GB Combined Datasets Example
-
-![](./assets/progress_bar.gif)
