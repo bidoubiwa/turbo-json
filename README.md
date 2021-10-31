@@ -1,55 +1,86 @@
 
 <h1 align="center">TURBO-JSON</h1>
 
+`turbo-json` takes as input a path to JSON files, and combines the valid JSON's in an array written in the standart output.
+
+The memory usage will [not exceed 8kb](https://doc.rust-lang.org/stable/std/io/struct.BufReader.html#method.new) per file as **read and write** are done in **a streaming manner**. Resulting in a very low memory usage and fast processing
+
 <p align="center">
 <img src="https://github.com/bidoubiwa/turbo-json/raw/main/assets/boat.png" width=300 />
 </p>
 
-![](https://github.com/bidoubiwa/turbo-json/raw/main/assets/json_combining.gif)
-__example with 2GB of json files__
+### Example
 
-Streams JSON files and combine them into in an outputted JSON. Reading and writing are done exclusively with **streaming**.
-The memory usage will [not exceed 8kb](https://doc.rust-lang.org/stable/std/io/struct.BufReader.html#method.new) instead of your files size in a no-streaming read/write process.
+![](https://github.com/bidoubiwa/turbo-json/raw/main/assets/json_combining.gif)
+
+
+## How JSON files are combined
+
+The input JSON files are combined and output as one JSON array.
+When it encounters a JSON array as the root type of one of the input file, it will concatenate the array with the final output (see examples below).
+
+### Example 1
+
+Input files:
+```json
+{ "id": 1 } // file 1
+```
+```json
+{ "id": 2 } // file 2
+```
+
+Output JSON:
+```json
+[
+  { "id": 1 },
+  { "id": 2 }
+]
+```
+
+### Example 2
+
+Input files:
+```json
+[ 1, 2, 3 ] // file 1
+```
+
+```json
+{ "id": 1 } // file 2
+```
+
+Output JSON:
+```json
+[
+  1,
+  2,
+  3,
+  { "id": 1 }
+]
+```
+
 
 ## Features
-- Combine JSON's: `1` & `true` => `[1, true]`.
-- Concatenate JSON arrays at one level deep: `[1,2,3]` & `"hello` & `[4,[5,6]]` => `[1, 2, 3, "hello", 4, [5, 6]]`.
+
+- Read and write of input and output is done in streams.
 - Files JSON's format are validated before combined.
 - Validation of JSON files are multithreaded.
 
-## Installation
+
+## CLI
+
+### Installation
 
 ```bash
-git clone git@github.com:bidoubiwa/turbo-json.git
-cd turbo-json
+cargo install turbo-json
 ```
 
-Make `turbo-json` a global command.
-```bash
-cargo install --path .
-```
-
-## Usage
-
-The following will fetch all files inside misc recursively and output it's combined JSON.
-
-With a **local run**:
-```bash
-cargo run --release -- [file ...]
-```
-
-**example:**
-```bash
-cargo run --release -- misc/**/*
-```
-
-With the **global** install:
+### Usage
 
 ```bash
 turbo-json [files ...]
 ```
 
-**example:**
+#### Example
 ```bash
-turbo-json misc/**/*
+turbo-json misc/**/*.json
 ```
