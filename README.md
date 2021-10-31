@@ -8,8 +8,6 @@
 ![](https://github.com/bidoubiwa/turbo-json/raw/main/assets/json_combining.gif)
 __example with 2GB of json files__
 
-// TODO: both a CLI and a library
-
 Streams JSON files and combine them into in an outputted JSON. Reading and writing are done exclusively with **streaming**.
 The memory usage will [not exceed 8kb](https://doc.rust-lang.org/stable/std/io/struct.BufReader.html#method.new) instead of your files size in a no-streaming read/write process.
 
