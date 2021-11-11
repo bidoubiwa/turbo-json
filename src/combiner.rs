@@ -1,6 +1,7 @@
 use crate::validator::validate_files;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{self, Write};
+use std::path::Path;
 use termion::{color, style};
 
 // Posibilite de recursivite et de double path resolver
@@ -14,8 +15,7 @@ use termion::{color, style};
 /// Since reading is done once for validation and once for writing, seeking is required inside the file. Because of that, it does not support a simple [`Read`](std::io::Read)er.
 ///
 /// If the **JSON file root type is an array**, it will concatenates with the output array.
-///
-pub fn json_combine(file_paths: Vec<String>, mut writer: impl Write) {
+pub fn json_combine(file_paths: &[impl AsRef<Path>], mut writer: impl Write) {
     if let Err(error) = writer.write_all(b"[") {
         eprintln!("{}", error);
         panic!("Could not write in the output stream");
