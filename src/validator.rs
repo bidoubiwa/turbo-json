@@ -4,6 +4,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::io::prelude::*;
 use std::io::{self, ErrorKind};
+use std::path::Path;
 use std::{fs::File, io::Cursor};
 use turbo_json_checker::JsonType;
 
@@ -49,7 +50,7 @@ fn flatten_reader_on_array(
 }
 
 pub fn validate_files(
-    files_path: &[String],
+    files_path: &[impl AsRef<Path>],
 ) -> Vec<Result<Option<Box<dyn Read + Send>>, JSONFileError>> {
     let number_of_files = files_path.len() as u64;
     let files_validator_progress_bar = ProgressBar::new(number_of_files);
@@ -58,15 +59,19 @@ pub fn validate_files(
             .template("{spinner:.green} validating JSON's... [{elapsed_precise}] [{wide_bar:.green}]▏{pos}/{len}")
             .progress_chars("█▇▆▅▄▃▂▁  "),
     );
+    let files_path: Vec<_> = files_path.iter().map(|path| path.as_ref()).collect();
 
     files_path
-        .par_iter()
+        .par_iter() // Method from Rayon crate
         .progress_with(files_validator_progress_bar)
-        .map(|file_path| {
+        .map(|&file_path| {
             let file = match File::open(file_path) {
                 Ok(file) => file,
                 Err(error) => {
-                    return Err(JSONFileError::IOError(error, file_path.to_string()));
+                    return Err(JSONFileError::IOError(
+                        error,
+                        file_path.display().to_string(),
+                    ));
                 }
             };
             match turbo_json_checker::validate(&file) {
@@ -75,16 +80,25 @@ pub fn validate_files(
                         Ok(cursor_option) => Ok(
                             cursor_option.map(|reader| Box::new(reader) as Box<dyn Read + Send>)
                         ),
-                        Err(error) => Err(JSONFileError::IOError(error, file_path.to_string())),
+                        Err(error) => Err(JSONFileError::IOError(
+                            error,
+                            file_path.display().to_string(),
+                        )),
                     }
                 }
                 Ok((_, start, end)) => {
                     match trim_reader_to_content(file, start as u64, end as u64 + 1) {
                         Ok(cursor) => Ok(Some(Box::new(cursor) as Box<dyn Read + Send>)),
-                        Err(error) => Err(JSONFileError::IOError(error, file_path.to_string())),
+                        Err(error) => Err(JSONFileError::IOError(
+                            error,
+                            file_path.display().to_string(),
+                        )),
                     }
                 }
-                Err(error) => Err(JSONFileError::InvalidJSON(error, file_path.to_string())),
+                Err(error) => Err(JSONFileError::InvalidJSON(
+                    error,
+                    file_path.display().to_string(),
+                )),
             }
         })
         .collect()

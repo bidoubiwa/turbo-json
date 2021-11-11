@@ -21,6 +21,6 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout();
     let stdout = stdout.lock();
 
-    json_combine(arguments, stdout);
+    json_combine(&arguments, stdout);
     Ok(())
 }

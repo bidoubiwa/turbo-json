@@ -25,7 +25,7 @@ cargo run --release -- [file ...]
 
 **example:**
 ```bash
-cargo run --release -- misc/**/*
+cargo run --release -- tests/misc/**/*
 ```
 
 With the **global** install:
@@ -45,6 +45,6 @@ turbo-json misc/**/*
 Watches files, output stdout in `output.json` and show clippy output in stdout.
 
 ```bash
-cargo watch -x 'clippy && cargo run -- misc/**/* | tee output.json' --ignore output.json
+cargo watch -x 'clippy && cargo run -- tests/misc/**/* | tee output.json' --ignore output.json
 ```
 

@@ -82,5 +82,5 @@ turbo-json [files ...]
 
 #### Example
 ```bash
-turbo-json misc/**/*.json
+turbo-json tests/misc/**/*.json
 ```
