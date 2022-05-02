@@ -32,6 +32,7 @@ pub fn json_combine(file_paths: &[impl AsRef<Path>], mut writer: impl Write) {
             .template(
                 "{spinner:.green} combining... [{elapsed_precise}] [{wide_bar:.green}]▏{pos}/{len}",
             ) // green does not work, it is always white
+            .unwrap()
             .progress_chars("█▇▆▅▄▃▂▁  "),
     );
 
