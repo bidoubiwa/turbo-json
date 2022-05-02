@@ -57,6 +57,7 @@ pub fn validate_files(
     files_validator_progress_bar.set_style(
         ProgressStyle::default_bar()
             .template("{spinner:.green} validating JSON's... [{elapsed_precise}] [{wide_bar:.green}]▏{pos}/{len}")
+            .unwrap()
             .progress_chars("█▇▆▅▄▃▂▁  "),
     );
     let files_path: Vec<_> = files_path.iter().map(|path| path.as_ref()).collect();
